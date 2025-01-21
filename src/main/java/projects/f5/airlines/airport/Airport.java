@@ -25,6 +25,9 @@ public class Airport {
         this.country = country;
     }
 
+    public Airport() {
+    }
+
     public Long getId() {
         return id;
     }
