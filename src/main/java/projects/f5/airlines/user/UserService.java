@@ -26,11 +26,13 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional
     public Optional<UserDto> getUserByUsername(String username) {
-        return userRepository.findByUsername(username)
+        return userRepository.findByUsernameWithRoles(username)
                 .map(this::convertToDto);
     }
 
+    @Transactional
     public UserDto registerUser(UserDto userDto) {
         if (userRepository.findByUsername(userDto.username()).isPresent()) {
             throw new RuntimeException("Username already exists");
