@@ -12,7 +12,7 @@ import jakarta.persistence.Table;
 import projects.f5.airlines.user.User;
 
 @Entity
-@Table(name = "user_roles")
+@Table(name = "roles")
 public class UserRole {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
