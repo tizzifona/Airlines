@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import projects.f5.airlines.airport.Airport;
@@ -29,14 +30,20 @@ public class FlightService {
                 .map(this::convertToDto);
     }
 
-    public List<FlightDto> searchFlights(Airport departure, Airport arrival, LocalDateTime date, int seats) {
-        return flightRepository.findAll().stream()
-                .filter(flight -> flight.getDepartureAirport().equals(departure) &&
-                        flight.getArrivalAirport().equals(arrival) &&
-                        flight.getDepartureTime().toLocalDate().equals(date.toLocalDate()) &&
-                        flight.getAvailableSeats() >= seats)
+    public List<FlightDto> searchFlights(FlightSearchDto searchDto) {
+        return flightRepository.findAvailableFlights(
+                searchDto.departureAirport(),
+                searchDto.arrivalAirport(),
+                searchDto.departureDate(),
+                searchDto.numberOfSeats()).stream()
                 .map(this::convertToDto)
-                .toList();
+                .collect(Collectors.toList());
+    }
+
+    @Scheduled(fixedRate = 60000)
+    public void updateFlightStatus() {
+        LocalDateTime now = LocalDateTime.now();
+        flightRepository.updateFlightStatus(now);
     }
 
     public FlightDto create(FlightDto flightDto) {
