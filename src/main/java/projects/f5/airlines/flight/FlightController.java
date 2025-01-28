@@ -3,6 +3,8 @@ package projects.f5.airlines.flight;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import projects.f5.airlines.reservation.SeatUpdateDto;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -27,45 +29,15 @@ public class FlightController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // @GetMapping("/search")
-    // public List<FlightDto> searchFlights(
-    // @RequestParam(required = false) String departureCode,
-    // @RequestParam(required = false) String arrivalCode,
-    // @RequestParam(required = false) LocalDateTime date,
-    // @RequestParam(required = false, defaultValue = "1") int seats) {
-
-    // Airport departure = null;
-    // if (departureCode != null) {
-    // departure = new Airport();
-    // departure.setCode(departureCode);
-    // }
-
-    // Airport arrival = null;
-    // if (arrivalCode != null) {
-    // arrival = new Airport();
-    // arrival.setCode(arrivalCode);
-    // }
-    // return flightService.searchFlights(departure, arrival, date, seats);
-    // }
-
-    // @GetMapping("/search")
-    // public List<FlightDto> searchFlights(
-    // @RequestParam(required = false) String departureCode,
-    // @RequestParam(required = false) String arrivalCode,
-    // @RequestParam(required = false) LocalDateTime date,
-    // @RequestParam(required = false, defaultValue = "1") int seats) {
-
-    // // Создаем объект FlightSearchDto
-    // FlightSearchDto searchDto = new FlightSearchDto(
-    // departureCode, // Код аэропорта отправления
-    // arrivalCode, // Код аэропорта прибытия
-    // date, // Дата вылета
-    // seats // Количество мест
-    // );
-
-    // // Передаем объект searchDto в метод сервиса
-    // return flightService.searchFlights(searchDto);
-    // }
+    @PutMapping("/{id}/seats")
+    public ResponseEntity<Void> updateSeats(@PathVariable Long id, @RequestBody SeatUpdateDto seatUpdateDto) {
+        try {
+            flightService.updateSeats(id, seatUpdateDto);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(404).build();
+        }
+    }
 
     @GetMapping("/search")
     public List<FlightDto> searchFlights(
@@ -76,7 +48,7 @@ public class FlightController {
 
         LocalDateTime departureDateTime = null;
         if (departureDate != null) {
-            departureDateTime = LocalDateTime.parse(departureDate); // ISO-8601 format
+            departureDateTime = LocalDateTime.parse(departureDate);
         }
 
         FlightSearchDto searchDto = new FlightSearchDto(

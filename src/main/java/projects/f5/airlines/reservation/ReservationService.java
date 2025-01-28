@@ -42,7 +42,7 @@ public class ReservationService {
             throw new RuntimeException("Not enough available seats");
         }
 
-        flightService.updateSeats(flightId, reservationDto.numberOfSeats());
+        flightService.updateSeats(flightId, new SeatUpdateDto(reservationDto.numberOfSeats()));
 
         Reservation reservation = new Reservation(
                 null, user, flight, reservationDto.numberOfSeats(),
