@@ -28,6 +28,13 @@ public class UserRole {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    public UserRole(Role role) {
+        this.role = role;
+    }
+
+    public UserRole() {
+    }
+
     public Long getId() {
         return id;
     }
@@ -42,6 +49,10 @@ public class UserRole {
 
     public String getName() {
         return role.name();
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
 }

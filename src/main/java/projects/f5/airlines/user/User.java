@@ -16,6 +16,7 @@ public class User {
     private Long id;
     private String username;
     private String password;
+    private String email;
     private String profileImage;
 
     @OneToMany(mappedBy = "user")
@@ -26,11 +27,12 @@ public class User {
     @JsonManagedReference
     private Set<Reservation> reservations;
 
-    public User(Long id, String username, String password, String profileImage, Set<UserRole> roles,
+    public User(Long id, String username, String password, String email, String profileImage, Set<UserRole> roles,
             Set<Reservation> reservations) {
         this.id = id;
         this.username = username;
         this.password = password;
+        this.email = email;
         this.profileImage = profileImage;
         this.roles = roles;
         this.reservations = reservations;
@@ -45,6 +47,14 @@ public class User {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getUsername() {

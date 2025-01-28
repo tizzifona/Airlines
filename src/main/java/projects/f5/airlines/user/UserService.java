@@ -4,6 +4,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import projects.f5.airlines.registration.UserRegistrationService;
 import projects.f5.airlines.role.Role;
 import projects.f5.airlines.role.UserRole;
 
@@ -19,11 +21,14 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final UserRegistrationService userRegistrationService;
     private final PasswordEncoder passwordEncoder;
     private static final String UPLOAD_DIR = "uploads/";
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, UserRegistrationService userRegistrationService,
+            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.userRegistrationService = userRegistrationService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -71,22 +76,6 @@ public class UserService {
                 .map(this::convertToDto);
     }
 
-    @Transactional
-    public UserDto registerUser(UserDto userDto) {
-        if (userRepository.findByUsername(userDto.username()).isPresent()) {
-            throw new RuntimeException("Username already exists");
-        }
-        User user = new User(
-                null,
-                userDto.username(),
-                passwordEncoder.encode(userDto.password()),
-                userDto.profileImage() != null ? userDto.profileImage() : "default_profile.png",
-                convertRolesToUserRoles(userDto.roles()),
-                userDto.reservations());
-        user = userRepository.save(user);
-        return convertToDto(user);
-    }
-
     public UserDto updateUser(Long id, UserDto userDto) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -128,6 +117,7 @@ public class UserService {
                 user.getId(),
                 user.getUsername(),
                 user.getPassword(),
+                user.getEmail(),
                 user.getProfileImage(),
                 roles,
                 user.getReservations());
@@ -135,7 +125,7 @@ public class UserService {
 
     private Set<UserRole> convertRolesToUserRoles(Set<Role> roles) {
         return roles.stream()
-                .map(role -> new UserRole())
+                .map(UserRole::new)
                 .collect(Collectors.toSet());
     }
 
@@ -143,4 +133,7 @@ public class UserService {
         return userRepository.findById(userId);
     }
 
+    public UserDto registerUser(UserDto userDto) {
+        return userRegistrationService.registerUser(userDto);
+    }
 }
