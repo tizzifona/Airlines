@@ -28,10 +28,41 @@ public class UserService {
     }
 
     @Transactional
-    public List<UserDto> getAllUsers() {
+    public List<UserSummaryDto> getAllUsers() {
         return userRepository.findAll().stream()
-                .map(this::convertToDto)
+                .map(this::convertToSummaryDto)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public Optional<UserDetailDto> getUserById(Long id) {
+        return userRepository.findById(id)
+                .map(this::convertToDetailedDto);
+    }
+
+    private UserSummaryDto convertToSummaryDto(User user) {
+        Set<String> roles = user.getRoles().stream()
+                .map(userRole -> userRole.getRole().name())
+                .collect(Collectors.toSet());
+        return new UserSummaryDto(
+                user.getId(),
+                user.getUsername(),
+                user.getPassword(),
+                user.getProfileImage(),
+                roles);
+    }
+
+    private UserDetailDto convertToDetailedDto(User user) {
+        Set<String> roles = user.getRoles().stream()
+                .map(userRole -> userRole.getRole().name())
+                .collect(Collectors.toSet());
+        return new UserDetailDto(
+                user.getId(),
+                user.getUsername(),
+                user.getPassword(),
+                user.getProfileImage(),
+                roles,
+                user.getReservations());
     }
 
     @Transactional

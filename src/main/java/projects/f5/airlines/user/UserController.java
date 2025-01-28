@@ -16,14 +16,14 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UserDto>> getAllUsers() {
-        List<UserDto> users = userService.getAllUsers();
+    public ResponseEntity<List<UserSummaryDto>> getAllUsers() {
+        List<UserSummaryDto> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        Optional<User> user = userService.findById(id);
+    public ResponseEntity<UserDetailDto> getUserById(@PathVariable Long id) {
+        Optional<UserDetailDto> user = userService.getUserById(id);
         return user.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
