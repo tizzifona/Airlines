@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import projects.f5.airlines.exception.UserAlreadyExistsException;
+import projects.f5.airlines.registration.UserRegistrationService;
 import projects.f5.airlines.role.Role;
 import projects.f5.airlines.role.UserRole;
 
@@ -21,11 +21,14 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final UserRegistrationService userRegistrationService;
     private final PasswordEncoder passwordEncoder;
     private static final String UPLOAD_DIR = "uploads/";
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, UserRegistrationService userRegistrationService,
+            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.userRegistrationService = userRegistrationService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -71,32 +74,6 @@ public class UserService {
     public Optional<UserDto> getUserByUsername(String username) {
         return userRepository.findByUsernameWithRoles(username)
                 .map(this::convertToDto);
-    }
-
-    @Transactional
-    public UserDto registerUser(UserDto userDto) {
-        if (userRepository.findByUsername(userDto.username()).isPresent()) {
-            throw new UserAlreadyExistsException("Username already exists: " + userDto.username());
-        }
-
-        if (userRepository.findByEmail(userDto.email()).isPresent()) {
-            throw new UserAlreadyExistsException("Email already exists: " + userDto.email());
-        }
-
-        Set<Role> roles = Optional.ofNullable(userDto.roles())
-                .filter(r -> !r.isEmpty())
-                .orElse(Set.of(Role.ROLE_USER));
-
-        User user = new User(
-                null,
-                userDto.username(),
-                passwordEncoder.encode(userDto.password()),
-                userDto.email(),
-                userDto.profileImage() != null ? userDto.profileImage() : "default_profile.png",
-                convertRolesToUserRoles(roles),
-                userDto.reservations());
-        user = userRepository.save(user);
-        return convertToDto(user);
     }
 
     public UserDto updateUser(Long id, UserDto userDto) {
@@ -154,5 +131,9 @@ public class UserService {
 
     public Optional<User> findById(Long userId) {
         return userRepository.findById(userId);
+    }
+
+    public UserDto registerUser(UserDto userDto) {
+        return userRegistrationService.registerUser(userDto);
     }
 }
