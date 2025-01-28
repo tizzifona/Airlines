@@ -4,6 +4,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import projects.f5.airlines.exception.UserAlreadyExistsException;
 import projects.f5.airlines.role.Role;
 import projects.f5.airlines.role.UserRole;
 
@@ -74,14 +76,24 @@ public class UserService {
     @Transactional
     public UserDto registerUser(UserDto userDto) {
         if (userRepository.findByUsername(userDto.username()).isPresent()) {
-            throw new RuntimeException("Username already exists");
+            throw new UserAlreadyExistsException("Username already exists: " + userDto.username());
         }
+
+        if (userRepository.findByEmail(userDto.email()).isPresent()) {
+            throw new UserAlreadyExistsException("Email already exists: " + userDto.email());
+        }
+
+        Set<Role> roles = Optional.ofNullable(userDto.roles())
+                .filter(r -> !r.isEmpty())
+                .orElse(Set.of(Role.ROLE_USER));
+
         User user = new User(
                 null,
                 userDto.username(),
                 passwordEncoder.encode(userDto.password()),
+                userDto.email(),
                 userDto.profileImage() != null ? userDto.profileImage() : "default_profile.png",
-                convertRolesToUserRoles(userDto.roles()),
+                convertRolesToUserRoles(roles),
                 userDto.reservations());
         user = userRepository.save(user);
         return convertToDto(user);
@@ -128,6 +140,7 @@ public class UserService {
                 user.getId(),
                 user.getUsername(),
                 user.getPassword(),
+                user.getEmail(),
                 user.getProfileImage(),
                 roles,
                 user.getReservations());
@@ -135,12 +148,11 @@ public class UserService {
 
     private Set<UserRole> convertRolesToUserRoles(Set<Role> roles) {
         return roles.stream()
-                .map(role -> new UserRole())
+                .map(UserRole::new)
                 .collect(Collectors.toSet());
     }
 
     public Optional<User> findById(Long userId) {
         return userRepository.findById(userId);
     }
-
 }

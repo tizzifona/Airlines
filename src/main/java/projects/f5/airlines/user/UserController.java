@@ -1,7 +1,10 @@
 package projects.f5.airlines.user;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import projects.f5.airlines.exception.UserAlreadyExistsException;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +29,16 @@ public class UserController {
         Optional<UserDetailDto> user = userService.getUserById(id);
         return user.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<UserDto> registerUser(@RequestBody UserDto userDto) {
+        try {
+            UserDto createdUser = userService.registerUser(userDto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+        } catch (UserAlreadyExistsException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
     }
 
 }

@@ -37,6 +37,7 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID"))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/users/register").permitAll()
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**"))
                         .permitAll()
                         .requestMatchers("/api/login").hasAnyRole("USER", "ADMIN")
