@@ -6,6 +6,8 @@ import projects.f5.airlines.role.UserRole;
 
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 @Entity
 @Table(name = "users")
 public class User {
@@ -17,9 +19,11 @@ public class User {
     private String profileImage;
 
     @OneToMany(mappedBy = "user")
+    @JsonManagedReference
     private Set<UserRole> roles;
 
     @OneToMany(mappedBy = "user")
+    @JsonManagedReference
     private Set<Reservation> reservations;
 
     public User(Long id, String username, String password, String profileImage, Set<UserRole> roles,

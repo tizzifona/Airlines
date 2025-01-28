@@ -7,16 +7,19 @@ import java.util.stream.Collectors;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
 import projects.f5.airlines.airport.Airport;
+import projects.f5.airlines.airport.AirportRepository;
+import projects.f5.airlines.reservation.SeatUpdateDto;
 
 @Service
 public class FlightService {
 
     private final FlightRepository flightRepository;
+    private final AirportRepository airportRepository;
 
-    public FlightService(FlightRepository flightRepository) {
+    public FlightService(FlightRepository flightRepository, AirportRepository airportRepository) {
         this.flightRepository = flightRepository;
+        this.airportRepository = airportRepository;
     }
 
     public List<FlightDto> findAll() {
@@ -59,9 +62,9 @@ public class FlightService {
         });
     }
 
-    public void updateSeats(Long flightId, int bookedSeats) {
+    public void updateSeats(Long flightId, SeatUpdateDto seatUpdateDto) {
         flightRepository.findById(flightId).ifPresent(flight -> {
-            int remainingSeats = flight.getAvailableSeats() - bookedSeats;
+            int remainingSeats = flight.getAvailableSeats() - seatUpdateDto.getBookedSeats();
             flight.setAvailableSeats(remainingSeats);
             if (remainingSeats <= 0) {
                 flight.setIsAvailable(false);
@@ -83,11 +86,13 @@ public class FlightService {
     }
 
     private Flight convertToEntity(FlightDto flightDto) {
-        Airport departureAirport = new Airport();
-        departureAirport.setCode(flightDto.departureAirport());
+        Airport departureAirport = airportRepository.findByCode(flightDto.departureAirport())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Departure airport not found: " + flightDto.departureAirport()));
 
-        Airport arrivalAirport = new Airport();
-        arrivalAirport.setCode(flightDto.arrivalAirport());
+        Airport arrivalAirport = airportRepository.findByCode(flightDto.arrivalAirport())
+                .orElseThrow(
+                        () -> new IllegalArgumentException("Arrival airport not found: " + flightDto.arrivalAirport()));
 
         return new Flight(
                 flightDto.id(),

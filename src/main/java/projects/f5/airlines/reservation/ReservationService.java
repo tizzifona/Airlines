@@ -1,5 +1,6 @@
 package projects.f5.airlines.reservation;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -38,15 +39,20 @@ public class ReservationService {
 
         Flight flight = convertToEntity(flightDto);
 
-        if (flight.getAvailableSeats() < reservationDto.numberOfSeats()) {
+        if (flight.getAvailableSeats() < reservationDto.seatsReserved()) {
             throw new RuntimeException("Not enough available seats");
         }
 
-        flightService.updateSeats(flightId, reservationDto.numberOfSeats());
+        flightService.updateSeats(flightId, new SeatUpdateDto(reservationDto.seatsReserved()));
 
         Reservation reservation = new Reservation(
-                null, user, flight, reservationDto.numberOfSeats(),
-                LocalDateTime.now(), LocalDateTime.now().plusMinutes(15), false);
+                user,
+                flight,
+                reservationDto.seatsReserved(),
+                BigDecimal.ZERO,
+                ReservationStatus.PENDING,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusMinutes(15));
 
         reservation = reservationRepository.save(reservation);
         return convertToDto(reservation);
@@ -72,7 +78,7 @@ public class ReservationService {
 
     public void confirmReservation(Long reservationId) {
         reservationRepository.findById(reservationId).ifPresent(reservation -> {
-            reservation.setConfirmed(true);
+            reservation.setStatus(ReservationStatus.CONFIRMED);
             reservationRepository.save(reservation);
         });
     }
@@ -80,6 +86,7 @@ public class ReservationService {
     private ReservationDto convertToDto(Reservation reservation) {
         return new ReservationDto(
                 reservation.getFlight().getId(),
-                reservation.getNumberOfSeats());
+                reservation.getSeatsReserved());
     }
+
 }

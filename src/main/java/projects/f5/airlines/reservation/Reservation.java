@@ -1,13 +1,21 @@
 package projects.f5.airlines.reservation;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Column;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import projects.f5.airlines.flight.Flight;
 import projects.f5.airlines.user.User;
@@ -15,32 +23,54 @@ import projects.f5.airlines.user.User;
 @Entity
 @Table(name = "reservations")
 public class Reservation {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonBackReference
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "flight_id")
     private Flight flight;
 
-    private Integer numberOfSeats;
-    private LocalDateTime reservationTime;
-    private LocalDateTime expirationTime;
-    private Boolean confirmed;
+    @Column(name = "seats_reserved", nullable = false)
+    private Integer seatsReserved;
 
-    public Reservation(Long id, User user, Flight flight, Integer numberOfSeats, LocalDateTime reservationTime,
-            LocalDateTime expirationTime, Boolean confirmed) {
-        this.id = id;
+    @Column(name = "total_price", nullable = false)
+    private BigDecimal totalPrice;
+
+    @Column(name = "status", nullable = false, length = 20)
+    @Enumerated(EnumType.STRING)
+    private ReservationStatus status;
+
+    @Column(name = "reservation_time", nullable = false)
+    private LocalDateTime reservationTime;
+
+    @Column(name = "expiration_time", nullable = false)
+    private LocalDateTime expirationTime;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    public Reservation(User user, Flight flight, Integer seatsReserved, BigDecimal totalPrice,
+            ReservationStatus status, LocalDateTime reservationTime, LocalDateTime expirationTime) {
         this.user = user;
         this.flight = flight;
-        this.numberOfSeats = numberOfSeats;
+        this.seatsReserved = seatsReserved;
+        this.totalPrice = totalPrice;
+        this.status = status;
         this.reservationTime = reservationTime;
         this.expirationTime = expirationTime;
-        this.confirmed = confirmed;
+    }
+
+    public Reservation() {
     }
 
     public Long getId() {
@@ -67,12 +97,28 @@ public class Reservation {
         this.flight = flight;
     }
 
-    public Integer getNumberOfSeats() {
-        return numberOfSeats;
+    public Integer getSeatsReserved() {
+        return seatsReserved;
     }
 
-    public void setNumberOfSeats(Integer numberOfSeats) {
-        this.numberOfSeats = numberOfSeats;
+    public void setSeatsReserved(Integer seatsReserved) {
+        this.seatsReserved = seatsReserved;
+    }
+
+    public BigDecimal getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(BigDecimal totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public ReservationStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ReservationStatus status) {
+        this.status = status;
     }
 
     public LocalDateTime getReservationTime() {
@@ -91,11 +137,30 @@ public class Reservation {
         this.expirationTime = expirationTime;
     }
 
-    public Boolean getConfirmed() {
-        return confirmed;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setConfirmed(Boolean confirmed) {
-        this.confirmed = confirmed;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = createdAt;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }

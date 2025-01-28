@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,6 +25,44 @@ public class UserService {
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+    }
+
+    @Transactional
+    public List<UserSummaryDto> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(this::convertToSummaryDto)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public Optional<UserDetailDto> getUserById(Long id) {
+        return userRepository.findById(id)
+                .map(this::convertToDetailedDto);
+    }
+
+    private UserSummaryDto convertToSummaryDto(User user) {
+        Set<String> roles = user.getRoles().stream()
+                .map(userRole -> userRole.getRole().name())
+                .collect(Collectors.toSet());
+        return new UserSummaryDto(
+                user.getId(),
+                user.getUsername(),
+                user.getPassword(),
+                user.getProfileImage(),
+                roles);
+    }
+
+    private UserDetailDto convertToDetailedDto(User user) {
+        Set<String> roles = user.getRoles().stream()
+                .map(userRole -> userRole.getRole().name())
+                .collect(Collectors.toSet());
+        return new UserDetailDto(
+                user.getId(),
+                user.getUsername(),
+                user.getPassword(),
+                user.getProfileImage(),
+                roles,
+                user.getReservations());
     }
 
     @Transactional
