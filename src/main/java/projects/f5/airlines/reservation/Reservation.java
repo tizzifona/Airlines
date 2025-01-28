@@ -43,6 +43,9 @@ public class Reservation {
         this.confirmed = confirmed;
     }
 
+    public Reservation() {
+    }
+
     public Long getId() {
         return id;
     }
