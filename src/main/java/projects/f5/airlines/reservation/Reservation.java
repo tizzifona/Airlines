@@ -30,17 +30,17 @@ public class Reservation {
     private Integer numberOfSeats;
     private LocalDateTime reservationTime;
     private LocalDateTime expirationTime;
-    private Boolean confirmed;
+    private ReservationStatus status;
 
     public Reservation(Long id, User user, Flight flight, Integer numberOfSeats, LocalDateTime reservationTime,
-            LocalDateTime expirationTime, Boolean confirmed) {
+            LocalDateTime expirationTime, ReservationStatus status) {
         this.id = id;
         this.user = user;
         this.flight = flight;
         this.numberOfSeats = numberOfSeats;
         this.reservationTime = reservationTime;
         this.expirationTime = expirationTime;
-        this.confirmed = confirmed;
+        this.status = status;
     }
 
     public Reservation() {
@@ -94,11 +94,11 @@ public class Reservation {
         this.expirationTime = expirationTime;
     }
 
-    public Boolean getConfirmed() {
-        return confirmed;
+    public ReservationStatus getStatus() {
+        return status;
     }
 
-    public void setConfirmed(Boolean confirmed) {
-        this.confirmed = confirmed;
+    public void setStatus(ReservationStatus status) {
+        this.status = status;
     }
 }

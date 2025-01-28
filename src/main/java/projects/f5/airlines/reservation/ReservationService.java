@@ -45,8 +45,13 @@ public class ReservationService {
         flightService.updateSeats(flightId, new SeatUpdateDto(reservationDto.numberOfSeats()));
 
         Reservation reservation = new Reservation(
-                null, user, flight, reservationDto.numberOfSeats(),
-                LocalDateTime.now(), LocalDateTime.now().plusMinutes(15), false);
+                null,
+                user,
+                flight,
+                reservationDto.numberOfSeats(),
+                LocalDateTime.now(),
+                LocalDateTime.now().plusMinutes(15),
+                ReservationStatus.PENDING);
 
         reservation = reservationRepository.save(reservation);
         return convertToDto(reservation);
@@ -72,7 +77,7 @@ public class ReservationService {
 
     public void confirmReservation(Long reservationId) {
         reservationRepository.findById(reservationId).ifPresent(reservation -> {
-            reservation.setConfirmed(true);
+            reservation.setStatus(ReservationStatus.CONFIRMED);
             reservationRepository.save(reservation);
         });
     }
