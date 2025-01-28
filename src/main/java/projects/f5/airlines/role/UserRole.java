@@ -51,4 +51,8 @@ public class UserRole {
         return role.name();
     }
 
+    public void setUser(User user) {
+        this.user = user;
+    }
+
 }
