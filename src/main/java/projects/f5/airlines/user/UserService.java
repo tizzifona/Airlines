@@ -79,10 +79,23 @@ public class UserService {
     public UserDto updateUser(Long id, UserDto userDto) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        user.setUsername(userDto.username());
-        user.setProfileImage(userDto.profileImage() != null ? userDto.profileImage() : "default_profile.png");
-        user.setPassword(passwordEncoder.encode(userDto.password()));
-        user.setRoles(convertRolesToUserRoles(userDto.roles()));
+
+        if (userDto.username() != null && !userDto.username().isBlank()) {
+            user.setUsername(userDto.username());
+        }
+
+        if (userDto.profileImage() != null) {
+            user.setProfileImage(userDto.profileImage());
+        }
+
+        if (userDto.password() != null && !userDto.password().isBlank()) {
+            user.setPassword(passwordEncoder.encode(userDto.password()));
+        }
+
+        if (userDto.roles() != null) {
+            user.setRoles(convertRolesToUserRoles(userDto.roles()));
+        }
+
         return convertToDto(userRepository.save(user));
     }
 
