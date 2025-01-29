@@ -1,5 +1,6 @@
 package projects.f5.airlines.reservation;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import projects.f5.airlines.user.User;
@@ -15,19 +16,26 @@ public class ReservationController {
         this.reservationService = reservationService;
     }
 
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<Reservation> getAll() {
+        return reservationService.getAll();
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @securityService.isOwner(#id)")
+    public Reservation getById(@PathVariable Long id) {
+        return reservationService.getById(id);
+    }
+
     @GetMapping("/my")
     public List<Reservation> getMyReservations(@RequestAttribute("user") User user) {
         return reservationService.findAllByUserId(user.getId());
     }
 
     @PostMapping
-    public ReservationDto createReservation(
-            @RequestAttribute("user") User user,
-            @RequestParam Long flightId,
-            @RequestParam int seats) {
-
-        ReservationDto reservationDto = new ReservationDto(flightId, seats);
-        return reservationService.create(user.getId(), flightId, reservationDto);
+    public ResponseEntity<String> createReservation(@RequestBody ReservationDto reservationDto) {
+        return reservationService.createReservation(reservationDto);
     }
 
     @PostMapping("/{id}/confirm")

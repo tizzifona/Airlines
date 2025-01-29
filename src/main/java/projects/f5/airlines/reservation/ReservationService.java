@@ -3,77 +3,86 @@ package projects.f5.airlines.reservation;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.Random;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import projects.f5.airlines.airport.Airport;
 import projects.f5.airlines.flight.Flight;
-import projects.f5.airlines.flight.FlightDto;
-import projects.f5.airlines.flight.FlightService;
+import projects.f5.airlines.flight.FlightRepository;
 import projects.f5.airlines.user.User;
-import projects.f5.airlines.user.UserService;
+import projects.f5.airlines.user.UserRepository;
 
 @Service
 public class ReservationService {
 
     private final ReservationRepository reservationRepository;
-    private final FlightService flightService;
-    private final UserService userService;
+    private final FlightRepository flightRepository;
+    private final UserRepository userRepository;
+    private final Random random = new Random();
 
-    public ReservationService(ReservationRepository reservationRepository, FlightService flightService,
-            UserService userService) {
+    public ReservationService(ReservationRepository reservationRepository, FlightRepository flightRepository,
+            UserRepository userRepository) {
         this.reservationRepository = reservationRepository;
-        this.flightService = flightService;
-        this.userService = userService;
+        this.flightRepository = flightRepository;
+        this.userRepository = userRepository;
+    }
+
+    public List<Reservation> getAll() {
+        return reservationRepository.findAll();
+    }
+
+    public Reservation getById(Long id) {
+        return reservationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reservation not found"));
     }
 
     public List<Reservation> findAllByUserId(Long userId) {
         return reservationRepository.findByUserId(userId);
     }
 
-    public ReservationDto create(Long userId, Long flightId, ReservationDto reservationDto) {
-        FlightDto flightDto = flightService.findById(flightId)
-                .orElseThrow(() -> new RuntimeException("Flight not found"));
-        User user = userService.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public ResponseEntity<String> createReservation(ReservationDto reservationDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        Optional<User> userOptional = userRepository.findByUsername(username);
 
-        Flight flight = convertToEntity(flightDto);
-
-        if (flight.getAvailableSeats() < reservationDto.seatsReserved()) {
-            throw new RuntimeException("Not enough available seats");
+        if (userOptional.isEmpty()) {
+            return ResponseEntity.status(401).body("Unauthorized");
         }
 
-        flightService.updateSeats(flightId, new SeatUpdateDto(reservationDto.seatsReserved()));
+        User user = userOptional.get();
+        Optional<Flight> flightOptional = flightRepository.findById(reservationDto.flightId());
 
-        Reservation reservation = new Reservation(
-                user,
-                flight,
-                reservationDto.seatsReserved(),
-                BigDecimal.ZERO,
-                ReservationStatus.PENDING,
-                LocalDateTime.now(),
-                LocalDateTime.now().plusMinutes(15));
+        if (flightOptional.isEmpty()) {
+            return ResponseEntity.badRequest().body("Flight not found");
+        }
 
-        reservation = reservationRepository.save(reservation);
-        return convertToDto(reservation);
+        Flight flight = flightOptional.get();
+        if (flight.getAvailableSeats() < reservationDto.seatsReserved()) {
+            return ResponseEntity.badRequest().body("Not enough seats available");
+        }
+
+        BigDecimal totalPrice = getRandomPricePerSeat().multiply(BigDecimal.valueOf(reservationDto.seatsReserved()));
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime expirationTime = now.plusMinutes(15);
+
+        Reservation reservation = new Reservation(user, flight, reservationDto.seatsReserved(), totalPrice,
+                ReservationStatus.PENDING, now, expirationTime);
+        reservationRepository.save(reservation);
+
+        flight.setAvailableSeats(flight.getAvailableSeats() - reservationDto.seatsReserved());
+        flightRepository.save(flight);
+
+        return ResponseEntity.ok("Reservation created successfully. It will expire at: " + expirationTime);
     }
 
-    private Flight convertToEntity(FlightDto flightDto) {
-        Airport departureAirport = new Airport();
-        departureAirport.setCode(flightDto.departureAirport());
-
-        Airport arrivalAirport = new Airport();
-        arrivalAirport.setCode(flightDto.arrivalAirport());
-
-        return new Flight(
-                flightDto.id(),
-                departureAirport,
-                arrivalAirport,
-                flightDto.departureTime(),
-                flightDto.arrivalTime(),
-                flightDto.availableSeats(),
-                flightDto.isAvailable(),
-                flightDto.price());
+    @SuppressWarnings("deprecation")
+    public BigDecimal getRandomPricePerSeat() {
+        double price = 50 + (random.nextDouble() * (500 - 50));
+        return BigDecimal.valueOf(price).setScale(2, BigDecimal.ROUND_HALF_UP);
     }
 
     public void confirmReservation(Long reservationId) {
@@ -81,12 +90,6 @@ public class ReservationService {
             reservation.setStatus(ReservationStatus.CONFIRMED);
             reservationRepository.save(reservation);
         });
-    }
-
-    private ReservationDto convertToDto(Reservation reservation) {
-        return new ReservationDto(
-                reservation.getFlight().getId(),
-                reservation.getSeatsReserved());
     }
 
 }
