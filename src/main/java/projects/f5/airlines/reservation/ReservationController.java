@@ -2,9 +2,11 @@ package projects.f5.airlines.reservation;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import projects.f5.airlines.user.User;
 
+import projects.f5.airlines.security.SecurityUser;
 import java.util.List;
 
 @RestController
@@ -29,8 +31,12 @@ public class ReservationController {
     }
 
     @GetMapping("/my-reservations")
-    public List<Reservation> getMyReservations(@RequestAttribute("user") User user) {
-        return reservationService.findAllByUserId(user.getId());
+    public List<Reservation> getMyReservations() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        Long userId = securityUser.getId();
+
+        return reservationService.findAllByUserId(userId);
     }
 
     @PostMapping("/create")
