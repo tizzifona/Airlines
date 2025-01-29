@@ -2,6 +2,7 @@ package projects.f5.airlines.user;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,4 +39,14 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/upload")
+    public ResponseEntity<String> uploadProfileImage(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file) {
+        String imagePath = userService.uploadProfileImage(id, file);
+
+        return ResponseEntity.ok(imagePath);
+    }
+
 }
