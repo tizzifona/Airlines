@@ -40,9 +40,17 @@ public class UserService {
     }
 
     @Transactional
-    public Optional<UserDetailDto> getUserById(Long id) {
-        return userRepository.findById(id)
-                .map(this::convertToDetailedDto);
+    public Optional<UserDetailDto> getUserById(Long id, User currentUser) {
+        Optional<User> userOpt = userRepository.findById(id);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            if (currentUser.getRoles().stream().anyMatch(role -> role.getRole().equals(Role.ROLE_USER))
+                    && !currentUser.getId().equals(id)) {
+                throw new RuntimeException("Access denied");
+            }
+            return Optional.of(convertToDetailedDto(user));
+        }
+        return Optional.empty();
     }
 
     private UserSummaryDto convertToSummaryDto(User user) {
@@ -107,7 +115,12 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    public String uploadProfileImage(Long userId, MultipartFile file) {
+    public String uploadProfileImage(Long userId, MultipartFile file, User currentUser) {
+        if (currentUser.getRoles().stream().anyMatch(role -> role.getRole().equals(Role.ROLE_USER))
+                && !currentUser.getId().equals(userId)) {
+            throw new RuntimeException("Access denied");
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         try {

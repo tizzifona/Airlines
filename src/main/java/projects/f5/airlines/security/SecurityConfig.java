@@ -38,13 +38,23 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID"))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/register").permitAll()
-                        .requestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**"))
-                        .permitAll()
-                        .requestMatchers("/api/login").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(endpoint).permitAll()
-                        .requestMatchers(endpoint + "/public").permitAll()
-                        .requestMatchers(endpoint + "/private").hasRole("ADMIN")
+                        .requestMatchers("/api/login").permitAll()
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**")).permitAll()
+
+                        .requestMatchers("/api/users/{id}").hasRole("USER")
+                        .requestMatchers("/api/users/{id}/upload").hasRole("USER")
+                        .requestMatchers("/api/reservations/my-reservations").hasRole("USER")
+                        .requestMatchers("/api/reservations/create").hasRole("USER")
+                        .requestMatchers("/api/flights/search").hasRole("USER")
+
+                        .requestMatchers("/api/users/**").hasRole("ADMIN")
+                        .requestMatchers("/api/airports/**").hasRole("ADMIN")
+                        .requestMatchers("/api/flights/**").hasRole("ADMIN")
+                        .requestMatchers("/api/reservations").hasRole("ADMIN")
+                        .requestMatchers("/api/reservations/{id}/confirm").hasRole("ADMIN")
+
                         .anyRequest().authenticated())
+
                 .userDetailsService(jpaUserDetailsService)
                 .httpBasic(withDefaults())
                 .sessionManagement(session -> session
