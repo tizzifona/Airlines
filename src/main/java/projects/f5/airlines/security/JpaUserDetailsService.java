@@ -23,4 +23,8 @@ public class JpaUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
+    public UserRepository getUserRepository() {
+        return userRepository;
+    }
+
 }
