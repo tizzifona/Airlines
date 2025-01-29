@@ -28,12 +28,12 @@ public class ReservationController {
         return reservationService.getById(id);
     }
 
-    @GetMapping("/my")
+    @GetMapping("/my-reservations")
     public List<Reservation> getMyReservations(@RequestAttribute("user") User user) {
         return reservationService.findAllByUserId(user.getId());
     }
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<String> createReservation(@RequestBody ReservationDto reservationDto) {
         return reservationService.createReservation(reservationDto);
     }
