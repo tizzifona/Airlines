@@ -51,7 +51,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/airports/**").hasRole("ADMIN")
                         .requestMatchers("/api/flights/**").hasRole("ADMIN")
                         .requestMatchers("/api/reservations").hasRole("ADMIN")
-                        .requestMatchers("/api/reservations/{id}/confirm").hasRole("ADMIN")
 
                         .anyRequest().authenticated())
 
