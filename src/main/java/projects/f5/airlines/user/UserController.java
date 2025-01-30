@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import projects.f5.airlines.security.SecurityUser;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -50,7 +51,7 @@ public class UserController {
     }
 
     @PostMapping("/{id}/upload")
-    public ResponseEntity<String> uploadProfileImage(
+    public ResponseEntity<Map<String, String>> uploadProfileImage(
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file,
             @AuthenticationPrincipal SecurityUser currentUser) {
@@ -59,7 +60,10 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         String imagePath = userService.uploadProfileImage(id, file, userOpt.get());
-        return ResponseEntity.ok(imagePath);
+
+        return ResponseEntity.ok(Map.of(
+                "imageUrl", imagePath,
+                "message", "Image uploaded successfully"));
     }
 
 }
