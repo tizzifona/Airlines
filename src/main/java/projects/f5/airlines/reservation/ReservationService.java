@@ -66,7 +66,8 @@ public class ReservationService {
             return ResponseEntity.badRequest().body("Not enough seats available");
         }
 
-        BigDecimal totalPrice = getRandomPricePerSeat().multiply(BigDecimal.valueOf(reservationDto.seatsReserved()));
+        BigDecimal totalPrice = flight.getPrice().multiply(BigDecimal.valueOf(reservationDto.seatsReserved()));
+
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime expirationTime = now.plusMinutes(15);
 
