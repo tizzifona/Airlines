@@ -47,7 +47,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/reservations/create").hasRole("USER")
                         .requestMatchers("/api/flights/search").hasRole("USER")
 
-                        .requestMatchers("/api/users/**").hasRole("ADMIN")
+                        .requestMatchers("/api/users").hasRole("ADMIN")
                         .requestMatchers("/api/airports/**").hasRole("ADMIN")
                         .requestMatchers("/api/flights/**").hasRole("ADMIN")
                         .requestMatchers("/api/reservations").hasRole("ADMIN")
