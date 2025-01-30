@@ -104,7 +104,8 @@ class ReservationControllerTest {
 
         mockMvc.perform(post("/api/reservations/" + id + "/confirm"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Reservation confirmed successfully."));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("Reservation confirmed successfully."));
 
         verify(reservationService, times(1)).confirmReservation(id);
     }

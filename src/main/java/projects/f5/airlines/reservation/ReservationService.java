@@ -2,6 +2,7 @@ package projects.f5.airlines.reservation;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -69,6 +70,9 @@ public class ReservationService {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime expirationTime = now.plusMinutes(15);
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        String formattedExpirationTime = expirationTime.format(formatter);
+
         Reservation reservation = new Reservation(user, flight, reservationDto.seatsReserved(), totalPrice,
                 ReservationStatus.PENDING, now, expirationTime);
         reservationRepository.save(reservation);
@@ -76,7 +80,8 @@ public class ReservationService {
         flight.setAvailableSeats(flight.getAvailableSeats() - reservationDto.seatsReserved());
         flightRepository.save(flight);
 
-        return ResponseEntity.ok("Reservation created successfully. It will expire at: " + expirationTime);
+        return ResponseEntity.status(201)
+                .body("Reservation created successfully. It will expire at: " + formattedExpirationTime);
     }
 
     @SuppressWarnings("deprecation")

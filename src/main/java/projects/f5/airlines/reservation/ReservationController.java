@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import projects.f5.airlines.security.SecurityUser;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/reservations")
@@ -43,12 +44,13 @@ public class ReservationController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<String> createReservation(@RequestBody ReservationDto reservationDto) {
-        return reservationService.createReservation(reservationDto);
+    public ResponseEntity<Map<String, String>> createReservation(@RequestBody ReservationDto reservationDto) {
+        ResponseEntity<String> response = reservationService.createReservation(reservationDto);
+        return ResponseEntity.status(response.getStatusCode()).body(Map.of("message", response.getBody()));
     }
 
     @PostMapping("/{id}/confirm")
-    public ResponseEntity<String> confirmReservation(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> confirmReservation(@PathVariable Long id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
         Long userId = securityUser.getId();
@@ -56,26 +58,17 @@ public class ReservationController {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Reservation not found"));
 
-        System.out.println("Current User ID: " + userId);
-
         Long reservationUserId = reservation.getUser().getId();
-        System.out.println("Reservation ID: " + reservation.getId());
-        System.out.println("Reservation Owner ID: " + reservationUserId);
-
-        System.out.println("Is current user ID equal to reservation owner ID? " + reservationUserId.equals(userId));
-
         boolean isAdmin = securityUser.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         boolean isOwner = reservationUserId.equals(userId);
 
-        System.out.println("Is Admin: " + isAdmin);
-        System.out.println("Is Owner: " + isOwner);
-
         if (!isAdmin && !isOwner) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not allowed to confirm this reservation.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "You are not allowed to confirm this reservation."));
         }
 
         reservationService.confirmReservation(id);
-        return ResponseEntity.ok("Reservation confirmed successfully.");
+        return ResponseEntity.ok(Map.of("message", "Reservation confirmed successfully."));
     }
 
 }

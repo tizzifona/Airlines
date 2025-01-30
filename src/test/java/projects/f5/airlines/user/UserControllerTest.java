@@ -117,11 +117,15 @@ class UserControllerTest {
         when(userService.findById(1L)).thenReturn(Optional.of(testUser));
         when(userService.uploadProfileImage(userId, file, testUser)).thenReturn("path/to/image.jpg");
 
-        ResponseEntity<String> response = userController.uploadProfileImage(userId, file, securityUser);
+        ResponseEntity<Map<String, String>> response = userController.uploadProfileImage(userId, file, securityUser);
 
         verify(userService, times(1)).uploadProfileImage(userId, file, testUser);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("path/to/image.jpg", response.getBody());
+
+        Map<String, String> responseBody = response.getBody();
+        assertNotNull(responseBody);
+        assertEquals("path/to/image.jpg", responseBody.get("imageUrl"));
+        assertEquals("Image uploaded successfully", responseBody.get("message"));
     }
 
     @Test
@@ -131,9 +135,10 @@ class UserControllerTest {
         when(file.getOriginalFilename()).thenReturn("image.jpg");
         when(userService.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = userController.uploadProfileImage(userId, file, securityUser);
+        ResponseEntity<Map<String, String>> response = userController.uploadProfileImage(userId, file, securityUser);
 
         verify(userService, times(1)).findById(1L);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
+
 }

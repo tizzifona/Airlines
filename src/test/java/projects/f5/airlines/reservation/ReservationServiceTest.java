@@ -100,7 +100,7 @@ public class ReservationServiceTest {
         ReservationDto dto = new ReservationDto(1L, 2);
         ResponseEntity<String> response = reservationService.createReservation(dto);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(201, response.getStatusCodeValue());
         assertTrue(response.getBody().contains("Reservation created successfully"));
     }
 
