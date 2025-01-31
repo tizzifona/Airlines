@@ -57,7 +57,7 @@ public class AirportService {
 
     private Airport convertToEntity(AirportDto airportDto) {
         return new Airport(
-                airportDto.id(),
+                null,
                 airportDto.code(),
                 airportDto.name(),
                 airportDto.city(),
