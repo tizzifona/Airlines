@@ -1,6 +1,7 @@
 package projects.f5.airlines.security;
 
 import static org.springframework.security.config.Customizer.withDefaults;
+import static org.springframework.http.HttpMethod.*;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -11,7 +12,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -37,22 +37,40 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID"))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/register").permitAll()
-                        .requestMatchers("/api/login").permitAll()
-                        .requestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**")).permitAll()
+                        // Authentication
+                        .requestMatchers(POST, endpoint + "/login").permitAll()
+                        .requestMatchers(POST, endpoint + "/register").permitAll()
 
-                        .requestMatchers("/api/users/{id}").hasRole("USER")
-                        .requestMatchers("/api/users/{id}/upload").hasRole("USER")
-                        .requestMatchers("/api/reservations/my-reservations").hasRole("USER")
-                        .requestMatchers("/api/reservations/create").hasRole("USER")
-                        .requestMatchers("/api/reservations/{id}/confirm").hasRole("USER")
-                        .requestMatchers("/api/flights/search").hasRole("USER")
+                        // Airports
+                        .requestMatchers(GET, endpoint + "/airports").hasRole("ADMIN")
+                        .requestMatchers(GET, endpoint + "/airports/{id}").hasRole("ADMIN")
+                        .requestMatchers(POST, endpoint + "/airports").hasRole("ADMIN")
+                        .requestMatchers(PUT, endpoint + "/airports/{id}").hasRole("ADMIN")
+                        .requestMatchers(DELETE, endpoint + "/airports/{id}").hasRole("ADMIN")
 
-                        .requestMatchers("/api/users").hasRole("ADMIN")
-                        .requestMatchers("/api/airports/**").hasRole("ADMIN")
-                        .requestMatchers("/api/flights/**").hasRole("ADMIN")
-                        .requestMatchers("/api/reservations").hasRole("ADMIN")
-                        .requestMatchers("/api/reservations/{id}").hasRole("ADMIN")
+                        // Flights
+                        .requestMatchers(GET, endpoint + "/flights/search").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(GET, endpoint + "/flights").hasRole("ADMIN")
+                        .requestMatchers(GET, endpoint + "/flights/{id}").hasRole("ADMIN")
+                        .requestMatchers(POST, endpoint + "/flights").hasRole("ADMIN")
+                        .requestMatchers(PUT, endpoint + "/flights/{id}/seats").hasRole("ADMIN")
+                        .requestMatchers(PUT, endpoint + "/flights/{id}/availability").hasRole("ADMIN")
+                        .requestMatchers(DELETE, endpoint + "/flights/{id}").hasRole("ADMIN")
+
+                        // Users
+                        .requestMatchers(GET, endpoint + "/users").hasRole("ADMIN")
+                        .requestMatchers(GET, endpoint + "/users/{id}").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(PUT, endpoint + "/users/{id}").hasRole("ADMIN")
+                        .requestMatchers(DELETE, endpoint + "/users/{id}").hasRole("ADMIN")
+                        .requestMatchers(GET, endpoint + "/reservations/my-reservations").hasRole("USER")
+                        .requestMatchers(POST, endpoint + "/users/{id}/upload").hasRole("USER")
+
+                        // Reservations
+                        .requestMatchers(GET, endpoint + "/reservations").hasRole("ADMIN")
+                        .requestMatchers(GET, endpoint + "/reservations/{id}").hasRole("ADMIN")
+                        .requestMatchers(POST, endpoint + "/reservations/create").hasRole("USER")
+                        .requestMatchers(POST, endpoint + "/reservations/{id}/confirm").hasRole("USER")
+                        .requestMatchers(DELETE, endpoint + "/reservations/{id}").hasRole("ADMIN")
 
                         .anyRequest().authenticated())
 
