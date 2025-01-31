@@ -4,9 +4,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import projects.f5.airlines.flight.Flight;
 import projects.f5.airlines.flight.FlightRepository;
+import projects.f5.airlines.security.SecurityUser;
 import projects.f5.airlines.user.User;
 import projects.f5.airlines.user.UserRepository;
 
@@ -96,6 +99,25 @@ public class ReservationService {
             reservation.setStatus(ReservationStatus.CONFIRMED);
             reservationRepository.save(reservation);
         });
+    }
+
+    public ResponseEntity<Map<String, String>> deleteReservation(Long reservationId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new RuntimeException("Reservation not found"));
+
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!reservation.getUser().getId().equals(securityUser.getId()) && !isAdmin) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "You are not allowed to delete this reservation."));
+        }
+
+        reservationRepository.delete(reservation);
+        return ResponseEntity.ok(Map.of("message", "Reservation deleted successfully."));
     }
 
 }

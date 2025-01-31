@@ -66,4 +66,11 @@ public class ReservationController {
         reservationService.confirmReservation(id);
         return ResponseEntity.ok(Map.of("message", "Reservation confirmed successfully."));
     }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<Map<String, String>> deleteReservation(@PathVariable Long id) {
+        return reservationService.deleteReservation(id);
+    }
+
 }
