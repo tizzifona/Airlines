@@ -104,4 +104,11 @@ public class FlightService {
                 flightDto.isAvailable(),
                 flightDto.price());
     }
+
+    public boolean delete(Long id) {
+        return flightRepository.findById(id).map(flight -> {
+            flightRepository.delete(flight);
+            return true;
+        }).orElse(false);
+    }
 }

@@ -31,17 +31,18 @@ public class FlightController {
     }
 
     @PutMapping("/{id}/seats")
-    public ResponseEntity<Void> updateSeats(@PathVariable Long id, @RequestBody SeatUpdateDto seatUpdateDto) {
+    public ResponseEntity<Map<String, String>> updateSeats(@PathVariable Long id,
+            @RequestBody SeatUpdateDto seatUpdateDto) {
         try {
             flightService.updateSeats(id, seatUpdateDto);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok(Map.of("message", "Seats updated successfully"));
         } catch (Exception e) {
             return ResponseEntity.status(404).build();
         }
     }
 
     @PutMapping("/{id}/availability")
-    public ResponseEntity<Void> updateAvailability(@PathVariable Long id,
+    public ResponseEntity<Map<String, String>> updateAvailability(@PathVariable Long id,
             @RequestBody Map<String, Boolean> availability) {
         try {
             Boolean isAvailable = availability.get("isAvailable");
@@ -49,7 +50,7 @@ public class FlightController {
                 return ResponseEntity.badRequest().build();
             }
             flightService.updateAvailability(id, isAvailable);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok(Map.of("message", "Availability updated successfully"));
         } catch (Exception e) {
             return ResponseEntity.status(404).build();
         }
@@ -79,5 +80,15 @@ public class FlightController {
     @PostMapping
     public FlightDto createFlight(@RequestBody FlightDto flightDto) {
         return flightService.create(flightDto);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, String>> deleteFlight(@PathVariable Long id) {
+        boolean deleted = flightService.delete(id);
+        if (deleted) {
+            return ResponseEntity.ok(Map.of("message", "Flight deleted successfully"));
+        } else {
+            return ResponseEntity.status(404).body(Map.of("error", "Flight not found"));
+        }
     }
 }
