@@ -36,8 +36,8 @@ CREATE TABLE flights (
     is_available BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (departure_airport_id) REFERENCES airports(id),
-    FOREIGN KEY (arrival_airport_id) REFERENCES airports(id)
+    FOREIGN KEY (departure_airport_id) REFERENCES airports(id) ON DELETE CASCADE,
+    FOREIGN KEY (arrival_airport_id) REFERENCES airports(id) ON DELETE CASCADE
 );
 
 CREATE TABLE reservations (
@@ -52,9 +52,8 @@ CREATE TABLE reservations (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (flight_id) REFERENCES flights(id)
+    FOREIGN KEY (flight_id) REFERENCES flights(id) ON DELETE CASCADE
 );
-
 
 CREATE INDEX idx_flights_departure_time ON flights(departure_time);
 CREATE INDEX idx_flights_available ON flights(is_available);
