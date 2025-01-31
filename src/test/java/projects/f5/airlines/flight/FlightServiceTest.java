@@ -129,4 +129,24 @@ public class FlightServiceTest {
         assertEquals(90, flight.getAvailableSeats());
         verify(flightRepository, times(1)).save(flight);
     }
+
+    @Test
+    void delete_ShouldReturnTrue_WhenFlightExists() {
+        when(flightRepository.findById(1L)).thenReturn(Optional.of(flight));
+
+        boolean result = flightService.delete(1L);
+
+        assertTrue(result);
+        verify(flightRepository, times(1)).delete(flight);
+    }
+
+    @Test
+    void delete_ShouldReturnFalse_WhenFlightDoesNotExist() {
+        when(flightRepository.findById(1L)).thenReturn(Optional.empty());
+
+        boolean result = flightService.delete(1L);
+
+        assertFalse(result);
+        verify(flightRepository, never()).delete(any(Flight.class));
+    }
 }
