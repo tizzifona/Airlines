@@ -61,12 +61,60 @@ This project aims to develop a comprehensive management system for an airline us
 
 6. Access the system via the provided endpoint and login with the registered user credentials.
 
+## ✅API Endpoints
+
+🟢 1. Authentication 
+
+- POST http://localhost:8080/api/login  - Login (USER, ADMIN)
+- POST http://localhost:8080/api/logout  - Logout (USER, ADMIN)
+- POST http://localhost:8080/api/register  - Registration ( Default- role USER)
+
+🟢 2. Airports 
+
+- GET http://localhost:8080/api/airports  - Get ALL Airports (ADMIN)
+- GET http://localhost:8080/api/airports/{id}  - Get Airport by id (ADMIN)
+- POST http://localhost:8080/api/airports  - Add new Airport (ADMIN)
+- PUT http://localhost:8080/api/airports/{id}  - Update Airport (ADMIN)
+- DEL http://localhost:8080/api/airports/{id}  - Delete Airport (ADMIN)
+
+🟢 3. Flights 
+
+- GET http://localhost:8080/api/flights  - Get ALL Flights (ADMIN)
+- GET http://localhost:8080/api/flights/{id}  - Get Flight by id (ADMIN)
+- GET http://localhost:8080/api/flights/search?departureCode={departureCode}   - Search Flight by Departure Airport (ADMIN, USER)
+- GET http://localhost:8080/api/flights/search?departureCode={departureCode}&arrivalCode={arrivalCode}   - Search Flight by Departure and Arrival Airport (ADMIN, USER)
+- GET http://localhost:8080/api/flights/search?departureCode={departureCode}&arrivalCode={arrivalCode}&departureDate={departureDate}&numberOfSeats={numberOfSeats}   - Search Flight by Departure Airport, Arrival Airport, Departure Date, Number of Seats (ADMIN, USER)
+- GET http://localhost:8080/api/flights/search?departureDate={departureDate}&numberOfSeats={numberOfSeats}  - Search Flight by Departure Date and Number of Seats (ADMIN, USER)
+- POST http://localhost:8080/api/flights  - Add new Flight (ADMIN)
+- PUT http://localhost:8080/api/flights/{id}/seats  - Update Booked Seats on the Flight (ADMIN) PUT http://localhost:8080/api/flights/{id}/availability  - Update Availability of Flight (ADMIN)
+- DEL http://localhost:8080/api/flights/{id}  - Delete Flight (ADMIN)
+
+🟢 4. Users 
+
+- GET http://localhost:8080/api/users  - Get ALL Users (ADMIN)
+- GET http://localhost:8080/api/users/{id}  - Get User by ID (ADMIN, USER(only owner))
+- PUT http://localhost:8080/api/users/{id}  - Update User by ID (ADMIN)
+- DEL http://localhost:8080/api/users/{id}  - Delete User by ID (ADMIN)
+- POST http://localhost:8080/api/users/{id}/upload  - Upload User Profile Photo (USER (only owner))
+
+🟢 5. Reservations
+
+- GET http://localhost:8080/api/reservations  - Get ALL Reservations (ADMIN)
+- GET http://localhost:8080/api/reservations/{id}  - Get Reservation by ID (ADMIN)
+- POST http://localhost:8080/api/reservations/create  - Add new Reservation (USER)
+- POST http://localhost:8080/api/reservations/{id}/confirm  - Confirm Reservation (USER(only owner))
+- DEL http://localhost:8080/api/reservations/{id}  - Delete Reservation by ID (ADMIN)
+- GET http://localhost:8080/api/reservations/my-reservations  - Get All Reservations for User (USER (only owner))
+
+
 ## ✅Testing
 The project includes unit tests to ensure the functionality of core features.
 
 ## ✅Running Tests
 - Run the tests to validate the code functionality and observe test coverage.
 - The project ensures a minimum of 70% coverage across all methods.
+
+[![temp-Image-Aoz9-Or.avif](https://i.postimg.cc/k425sNqC/temp-Image-Aoz9-Or.avif)](https://postimg.cc/9RjVF7Dg)
 
 ## ✅Technology Stack
 
@@ -77,6 +125,45 @@ The project includes unit tests to ensure the functionality of core features.
 ![Apache Maven](https://img.shields.io/badge/Apache%20Maven-C71A36?style=for-the-badge&logo=Apache%20Maven&logoColor=white)
 ![Visual Studio Code](https://img.shields.io/badge/Visual%20Studio%20Code-0078d7.svg?style=for-the-badge&logo=visual-studio-code&logoColor=white)
 ![Postman](https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white)
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+![MySQL](https://img.shields.io/badge/mysql-4479A1.svg?style=for-the-badge&logo=mysql&logoColor=white)
+
+## ✅Diagrams of the project:
+
+1. Class diagram
+
+[![temp-Imagepa6-WP7.avif](https://i.postimg.cc/NMcN7D19/temp-Imagepa6-WP7.avif)](https://postimg.cc/bGmHqQVp)
+
+2. Detailed diagrams of every class:
+
+- [Flight](https://postimg.cc/64nv4Rc7)
+
+- [Reservation](https://postimg.cc/gxT2djy1)
+
+- [Airport](https://postimg.cc/SnqvsfdM)
+
+- [User](https://postimg.cc/wtj45xSx)
+
+- [UserRole](https://postimg.cc/phg0tfyy)
+
+- [Authentication](https://postimg.cc/XBdsNryL)
+
+
+## ✅Data Base Schema
+
+[![temp-Imagei-BUUR6.avif](https://i.postimg.cc/Xv0hQnWY/temp-Imagei-BUUR6.avif)](https://postimg.cc/nX00LbMy)
+
+[![temp-Image-SCedhm.avif](https://i.postimg.cc/9MLnmT7D/temp-Image-SCedhm.avif)](https://postimg.cc/bD2TLZLP)
 
 ## ✅Author
 Nadiia Alaieva [![izzifona](https://img.icons8.com/ios-glyphs/30/000000/github.png)](https://github.com/tizzifona)
+
+
+## ✅Disclaimer
+This project is developed as part of a bootcamp learning experience and is intended for educational purposes only. The creators and contributors are not responsible for any issues, damages, or losses that may occur from using this code.
+
+This project is not meant for commercial use, and any trademarks or references to third-party services (such as Funko) belong to their respective owners. By using this code, you acknowledge that it is a work in progress, created by learners, and comes without warranties or guarantees of any kind.
+
+Use at your own discretion and risk.
+
+Thank You! ❤️
