@@ -1,11 +1,12 @@
 package projects.f5.airlines.reservation;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
@@ -14,7 +15,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -22,6 +25,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import projects.f5.airlines.flight.Flight;
 import projects.f5.airlines.flight.FlightRepository;
+import projects.f5.airlines.security.SecurityUser;
 import projects.f5.airlines.user.User;
 import projects.f5.airlines.user.UserRepository;
 
@@ -39,6 +43,12 @@ public class ReservationServiceTest {
 
     @Mock
     private Random random;
+
+    @Mock
+    private SecurityUser securityUser;
+
+    @Mock
+    private Authentication authentication;
 
     @InjectMocks
     private ReservationService reservationService;
@@ -118,6 +128,70 @@ public class ReservationServiceTest {
         BigDecimal price = reservationService.getRandomPricePerSeat();
         assertNotNull(price);
         assertTrue(price.compareTo(BigDecimal.valueOf(50)) >= 0 && price.compareTo(BigDecimal.valueOf(500)) <= 0);
+    }
+
+    @Test
+    void deleteReservation_Success() {
+        Long reservationId = 1L;
+        User user = new User();
+        user.setId(10L);
+
+        Reservation reservation = new Reservation();
+        reservation.setId(reservationId);
+        reservation.setUser(user);
+
+        SecurityContext securityContext = mock(SecurityContext.class);
+        Authentication authentication = mock(Authentication.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(authentication.getPrincipal()).thenReturn(securityUser);
+        when(securityUser.getId()).thenReturn(10L);
+        when(reservationRepository.findById(reservationId)).thenReturn(Optional.of(reservation));
+
+        ResponseEntity<Map<String, String>> response = reservationService.deleteReservation(reservationId);
+
+        verify(reservationRepository, times(1)).delete(reservation);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Reservation deleted successfully.", response.getBody().get("message"));
+    }
+
+    @Test
+    void deleteReservation_Forbidden() {
+        Long reservationId = 1L;
+        User owner = new User();
+        owner.setId(10L);
+
+        Reservation reservation = new Reservation();
+        reservation.setId(reservationId);
+        reservation.setUser(owner);
+
+        SecurityContext securityContext = mock(SecurityContext.class);
+        Authentication authentication = mock(Authentication.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(authentication.getPrincipal()).thenReturn(securityUser);
+        when(securityUser.getId()).thenReturn(20L);
+        when(reservationRepository.findById(reservationId)).thenReturn(Optional.of(reservation));
+
+        ResponseEntity<Map<String, String>> response = reservationService.deleteReservation(reservationId);
+
+        verify(reservationRepository, never()).delete(any());
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertEquals("You are not allowed to delete this reservation.", response.getBody().get("error"));
+    }
+
+    @Test
+    void deleteReservation_NotFound() {
+        Long reservationId = 1L;
+        Mockito.when(reservationRepository.findById(reservationId)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            reservationService.deleteReservation(reservationId);
+        });
+
+        assertEquals("Reservation not found", exception.getMessage());
     }
 
 }

@@ -10,7 +10,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -24,6 +26,7 @@ import projects.f5.airlines.security.SecurityUser;
 import projects.f5.airlines.user.User;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
@@ -108,6 +111,31 @@ class ReservationControllerTest {
                 .andExpect(jsonPath("$.message").value("Reservation confirmed successfully."));
 
         verify(reservationService, times(1)).confirmReservation(id);
+    }
+
+    @Test
+    @WithMockUser(username = "user1", roles = { "USER" })
+    public void deleteReservation_Success() throws Exception {
+        Long reservationId = 1L;
+        Mockito.when(reservationService.deleteReservation(reservationId))
+                .thenReturn(ResponseEntity.ok(Map.of("message", "Reservation deleted successfully.")));
+
+        mockMvc.perform(delete("/api/reservations/{id}", reservationId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Reservation deleted successfully."));
+    }
+
+    @Test
+    @WithMockUser(username = "user2", roles = { "USER" })
+    public void deleteReservation_Forbidden() throws Exception {
+        Long reservationId = 1L;
+        Mockito.when(reservationService.deleteReservation(reservationId))
+                .thenReturn(ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "You are not allowed to delete this reservation.")));
+
+        mockMvc.perform(delete("/api/reservations/{id}", reservationId))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("You are not allowed to delete this reservation."));
     }
 
 }
