@@ -35,34 +35,30 @@ public class ReservationController {
     }
 
     @GetMapping("/my-reservations")
+    @PreAuthorize("@securityService.isOwner(#id)")
     public List<Reservation> getMyReservations() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
-        Long userId = securityUser.getId();
-
-        return reservationService.findAllByUserId(userId);
+        return reservationService.findAllByUserId(securityUser.getId());
     }
 
     @PostMapping("/create")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Map<String, String>> createReservation(@RequestBody ReservationDto reservationDto) {
         ResponseEntity<String> response = reservationService.createReservation(reservationDto);
         return ResponseEntity.status(response.getStatusCode()).body(Map.of("message", response.getBody()));
     }
 
     @PostMapping("/{id}/confirm")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Map<String, String>> confirmReservation(@PathVariable Long id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
-        Long userId = securityUser.getId();
 
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Reservation not found"));
 
-        Long reservationUserId = reservation.getUser().getId();
-        boolean isAdmin = securityUser.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        boolean isOwner = reservationUserId.equals(userId);
-
-        if (!isAdmin && !isOwner) {
+        if (!reservation.getUser().getId().equals(securityUser.getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("error", "You are not allowed to confirm this reservation."));
         }
@@ -70,5 +66,4 @@ public class ReservationController {
         reservationService.confirmReservation(id);
         return ResponseEntity.ok(Map.of("message", "Reservation confirmed successfully."));
     }
-
 }
